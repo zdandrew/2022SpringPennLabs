@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Clubs {% endblock %}
+
+{% block content %}
+<!doctype html>
+<html>
+  <head>
+    <title>Clubs</title>
+  </head>
+  <body>
+
+    <form action="/club" method="POST">
+        <div class="form-group">
+          <label for="search">Enter search term (Press submit when form is empty to see all clubs)</label>
+          <input type="text" name="search" class="form-control" id="search" placeholder="search">
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <h1> Clubs at Penn</h1>
+    
+    <ul>
+        {% for item in joined %}
+            <div>name: {{item.name}}</div>
+            <div>description: {{item.description}}</div>
+            <div>tags: {{item.tags}}</div>
+            <div>favorited users: {{item.favorites}}</div>
+            <div>number of favorites: {{item.num_favs}}</div>
+            <div>comments: {{item.comments}}</div>
+            <div>-------------------------------------------</div>
+
+        
+        {% endfor %}
+    </ul>
+
+    
+  </body>
+  
+</html>
+
+{% endblock %}

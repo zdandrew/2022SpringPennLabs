@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Find User{% endblock %}
+
+{% block content %}
+
+<form action="/user" method="POST">
+    <div class="form-group">
+      <label for="name">Enter User's name (Press submit when form is empty to see all users)</label>
+      <input type="text" name="name" class="form-control" id="name" placeholder="name">
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<body>
+
+    <h1> Users </h1>
+    
+    <ul>
+        {% for item in joined %}
+            <div>name: {{item.id}}</div>
+            <div>description: {{item.email}}</div>
+            <div>favorited clubs: {{item.clubs}}</div>
+            <div>-------------------------------------------</div>
+
+        
+        {% endfor %}
+    </ul>
+
+    
+  </body>
+
+{% endblock %}
