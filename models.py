@@ -55,3 +55,5 @@ class Comment(db.Model):
     body = db.Column(db.String(500), unique=False, nullable=False)
     club = db.Column(db.String(100), db.ForeignKey(Club.id))
     user = db.Column(db.String(100), db.ForeignKey(User.email))
+    def __repr__(self):
+        return '<Comment %r>' % self.body

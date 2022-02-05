@@ -8,22 +8,57 @@ import uuid
 import bcrypt
 from werkzeug.security import generate_password_hash, check_password_hash
 from dataclasses import dataclass
+from flask_marshmallow import Marshmallow
 
 DB_FILE = "clubreview.db"
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_FILE}"
+
 db = SQLAlchemy(app)
+ma = Marshmallow(app)
 
 from models import *
 app.secret_key = "I LOVE PENN LABS"
-
 
 
 @app.route('/api')
 def api():
     return jsonify({"message": "Welcome to the Penn Club Review API!."})
     # return jsonify("welcome to the api")
+
+# Model Schema for Marshmallow (Object Serialization)
+class ClubSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Club
+    id = ma.auto_field()
+    name = ma.auto_field()
+    description = ma.auto_field()
+    tags = ma.auto_field()
+    users = ma.auto_field()
+    comments = ma.auto_field()
+
+class TagSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Club
+    id = ma.auto_field()
+
+class UserSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = User
+    id = ma.auto_field()
+    email = ma.auto_field()
+    clubs = ma.auto_field()
+    comments = ma.auto_field()
+    
+
+class CommentSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Comment
+    id = ma.auto_field()
+    body = ma.auto_field()
+    club = ma.auto_field()
+    user = ma.auto_field()
 
 
 #########################################################################################
@@ -33,28 +68,31 @@ def api():
 @app.route('/api/user/', methods=['GET'])
 def user_api():
     if request.method == 'GET':
-        ls = []
         users = User.query.all()
-        for u in users:
-            ls.append({'id': u.id, 'email': u.email, 'favorited_clubs': u.clubs})
-        return jsonify(ls)
+        user_schema = UserSchema(many=True)
+        output = user_schema.dump(users)
+        return jsonify({'user': output})
+        # for u in users:
+        #     ls.append({'id': u.id, 'email': u.email, 'favorited_clubs': u.clubs})
+        # return jsonify(ls)
 
 @app.route('/api/user/<name>', methods=['GET'])
 def user_search_api(name):
-    ls = []
-    users = []
     # if nothing is being searched, display all users.
     if not name or len(name) == 0:
         users = User.query.all()
     else:
         users = User.query.filter_by(id=name)
-    for u in users:
-        ls.append({'id': u.id, 'email': u.email, 'favorited_clubs': u.clubs})
-    return jsonify(ls)
+    user_schema = UserSchema(many=True)
+    output = user_schema.dump(users)
+    return jsonify({'user': output})
+    # for u in users:
+    #     ls.append({'id': u.id, 'email': u.email, 'favorited_clubs': u.clubs})
+    # return jsonify(ls)
 
 # This interacts with the front-end, return html
 @app.route('/user', methods=['GET', 'POST'])
-def user():
+def user_search_html():
     if request.method == 'GET':
         users = [];
         users = User.query.all()
