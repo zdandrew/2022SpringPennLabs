@@ -5,10 +5,12 @@ import requests
 import json
 from bs4 import BeautifulSoup
 import uuid
+import bcrypt
 
 def create_user():
-    josh = User(id="josh", email='josh@gmail.com', password = None)
-    bill = User(id="bill", email='bill@gmail.com', password = None)
+    password = 'test'
+    josh = User(id="josh", email='josh@gmail.com', password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()))
+    bill = User(id="bill", email='bill@gmail.com', password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()))
     db.session.add(josh)
     db.session.add(bill)
     db.session.commit()
