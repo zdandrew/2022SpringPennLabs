@@ -25,7 +25,6 @@ app.secret_key = "I LOVE PENN LABS"
 @app.route('/api')
 def api():
     return jsonify({"message": "Welcome to the Penn Club Review API!."})
-    # return jsonify("welcome to the api")
 
 # Model Schema for Marshmallow (Object Serialization)
 class ClubSchema(ma.SQLAlchemySchema):
@@ -365,6 +364,32 @@ def logout():
     else:
         return render_template('index.html')
 
+#autogenerate documentation
+from apispec import APISpec
+from apispec.ext.marshmallow import MarshmallowPlugin
+from flask_apispec.extension import FlaskApiSpec
+
+app.config.update({
+    'APISPEC_SPEC': APISpec(
+        title='Penn Labs Backend Challenge',
+        version='v1',
+        plugins=[MarshmallowPlugin()],
+        openapi_version='2.0.0'
+    ),
+    'APISPEC_SWAGGER_URL': '/swagger/',  # URI to access API Doc JSON 
+    'APISPEC_SWAGGER_UI_URL': '/swagger-ui/'  # URI to access UI of API Doc
+})
+docs = FlaskApiSpec(app)
+docs.register(api)
+docs.register(get_users_json)
+docs.register(search_user_json)
+docs.register(update_club_json)
+docs.register(get_clubs_json)
+docs.register(search_club_json)
+docs.register(post_club_json)
+docs.register(add_comment_json)
+docs.register(fav_club_json)
+docs.register(get_tag_count_json)
 
 
 if __name__ == '__main__':

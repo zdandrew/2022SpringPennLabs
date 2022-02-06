@@ -15,13 +15,6 @@ users = db.Table('users',
     db.Column('user_id', db.String(100), db.ForeignKey('user.id'), primary_key=True)
 )
 
-# Remove this bcause comment and user is many to one relationship
-# comments = db.Table('comments',
-#     db.Column('comment_id', db.String(100), db.ForeignKey('comment.id'), primary_key=True),
-#     db.Column('club_id', db.String(100), db.ForeignKey('club.id'), primary_key=True)
-# )
-
-
 class Club(db.Model):
     id = db.Column(db.String(100), primary_key=True)
     name = db.Column(db.String(100), unique=False, nullable=False)
