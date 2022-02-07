@@ -1,5 +1,7 @@
 # Penn Labs Backend Challenge - Andrew Zhang
 
+View in raw text for best formatting
+
 Bonus Challenges Completed: 
    - Frontend (templates)
    - scraping
