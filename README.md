@@ -18,6 +18,7 @@ POST: http://127.0.0.1:5000/login form data: (email, 'josh@gmail.com'), (passwor
 
 Incomplete API Documentation found at '/swagger-ui/'
 Due to bugs and time constraint, was not able to accurately autogenerate api documentation using Swagger library. 
+The @doc, @kwarg, @marshal_with lines were written for the automatic api generation, but seemed to break some routes. Thus many have been commented out.
 
 ## FILE STRUCTURE:
 Templates: Contains all the HTML used to set up the frontend
