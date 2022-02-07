@@ -147,3 +147,5 @@ Dockerfile, start_app_w_gunicorn.sh, requirements.txt: used for creating Docker 
    5. run app from Docker: 
       'docker run -p 5000:5000 labs_image_2022'
    
+   ### Unit Tests
+   Used Pytest library
