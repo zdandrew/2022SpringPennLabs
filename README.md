@@ -9,9 +9,9 @@ Bonus Challenges Completed:
    - club comments
    - login/logout/signup
 
-How to set up. Navigate into project directory, 'npm install', 'python bootstrap.py', then 'flask run'.\
+How to set up. Navigate into project directory, 'npm install', 'python bootstrap.py', then 'flask run'.
 
-Note about Frontend: Everything except 'add new club', 'favorite club', 'modify club' is integrated into UI. \
+Note about Frontend: Everything except 'add new club', 'favorite club', 'modify club' is integrated into UI. 
 
 Log-in information: email: 'josh@gmail.com', password: 'test'. Or you can create your own through the register page. Must be logged-in to add comments or favorite clubs. Can create and update clubs without logging in.
 POST: http://127.0.0.1:5000/login form data: (email, 'josh@gmail.com'), (password, 'test')
