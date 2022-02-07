@@ -9,10 +9,16 @@ import bcrypt
 from werkzeug.security import generate_password_hash, check_password_hash
 from dataclasses import dataclass
 from flask_marshmallow import Marshmallow
+from apispec import APISpec
+from apispec.ext.marshmallow import MarshmallowPlugin
+from flask_apispec.extension import FlaskApiSpec
+from webargs import fields
+from flask_apispec import use_kwargs, marshal_with, doc
 
 DB_FILE = "clubreview.db"
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_FILE}"
 
 db = SQLAlchemy(app)
@@ -22,7 +28,8 @@ from models import *
 app.secret_key = "I LOVE PENN LABS"
 
 
-@app.route('/api')
+@app.route('/api', provide_automatic_options=False)
+@doc(description='Welcome to the Penn Club Review API!')
 def api():
     return jsonify({"message": "Welcome to the Penn Club Review API!."})
 
@@ -62,7 +69,9 @@ class CommentSchema(ma.SQLAlchemySchema):
 
 
 # This route returns all users
-@app.route('/api/users/', methods=['GET'])
+@app.route('/api/users/', methods=['GET'], provide_automatic_options=False)
+@doc(description='This route returns all users')
+@marshal_with(UserSchema(many=True))
 def get_users_json():
     if request.method == 'GET':
         users = User.query.all()
@@ -70,7 +79,10 @@ def get_users_json():
         output = user_schema.dump(users)
         return jsonify({'user': output})
 
-@app.route('/api/user/<name>', methods=['GET'])
+# Get user with specific name
+@app.route('/api/user/<name>', methods=['GET'], provide_automatic_options=False)
+@doc(description='Returns users with matching names')
+@marshal_with(UserSchema)
 def search_user_json(name):
     user = User.query.filter_by(id=name)
     if user.count() == 0:
@@ -80,7 +92,7 @@ def search_user_json(name):
     return jsonify({'user': output})
 
 # This interacts with the front-end, return html
-@app.route('/users', methods=['GET', 'POST'])
+@app.route('/users', methods=['GET', 'POST'], strict_slashes = False, provide_automatic_options=False)
 def users_html():
     if request.method == 'GET':
         users = [];
@@ -98,7 +110,8 @@ def users_html():
 
 
 # Get all clubs
-@app.route('/api/clubs', methods=['GET'], strict_slashes = False)
+@app.route('/api/clubs', methods=['GET'], strict_slashes = False, provide_automatic_options=False)
+@marshal_with(ClubSchema(many=True))
 def get_clubs_json():
     clubs = Club.query.all()
     club_schema = ClubSchema(many=True)
@@ -110,7 +123,8 @@ def get_clubs_json():
     return jsonify({'clubs': output})
 
 # Create new club
-@app.route('/api/club', methods=['POST'], strict_slashes = False)
+@app.route('/api/club', methods=['POST'], strict_slashes = False, provide_automatic_options=False)
+# @doc(description='Create new club, include name, description, code, tags in json')
 def post_club_json():
     req = request.get_json()
     tags = []
@@ -133,9 +147,10 @@ def post_club_json():
     return jsonify({'message': 'new club created'}), 201
 
 # Get specific club
-@app.route('/api/club/<id>', methods=['GET'])
-def search_club_json(id):
-    query = id
+@app.route('/api/club/<q>', methods=['GET'], provide_automatic_options=False)
+@marshal_with(ClubSchema(many=True))
+def search_club_json(q):
+    query = q
     clubs = Club.query.all()
     filtered = []
     for i in clubs:
@@ -149,7 +164,8 @@ def search_club_json(id):
     return jsonify({'club': output})
 
 # Update specific club
-@app.route('/api/club/<id>', methods=['PUT'])
+@app.route('/api/club/<id>', methods=['PUT'], provide_automatic_options=False)
+# @use_kwargs({'name': fields.Str(), 'description': fields.Str(), 'tags': fields.List(fields.Str())})
 def update_club_json(id):
     club_obj = Club.query.get_or_404(id)
     input = request.get_json()
@@ -205,7 +221,8 @@ def get_clubs_html():
 
 # Allows users to favorite clubs, each user can only favorite each club once. 
 # users that favorite a club are visible on the Club list page.
-@app.route('/api/favorite/<club>/<name>', methods=['POST'])
+@app.route('/api/favorite/<club>/<name>', methods=['POST'], provide_automatic_options=False)
+# @use_kwargs({'club': fields.Str(), 'name': fields.Str()})
 def fav_club_json(club, name):
     if request.method == 'POST' and not 'email' in session:
         return jsonify({'message': 'access denied, must be logged in'}), 401
@@ -227,7 +244,7 @@ def fav_club_json(club, name):
 
 
 # Returns the number of clubs associated with each tag
-@app.route('/api/tag_count')
+@app.route('/api/tag_count', methods=['GET'], strict_slashes = False, provide_automatic_options=False)
 def get_tag_count_json():
     clubs = Club.query.all()
     tags = {}
@@ -240,7 +257,7 @@ def get_tag_count_json():
                 tags[j.id] += 1
     return jsonify(tags)
 
-@app.route('/tag_count')
+@app.route('/tag_count', methods=['GET'], strict_slashes = False, provide_automatic_options=False)
 def get_tag_cnt_html():
     clubs = Club.query.all()
     tags = {}
@@ -253,13 +270,17 @@ def get_tag_cnt_html():
                 tags[j.id] += 1
     return render_template('tag_count.html', tags=tags)
 
-# Creates a comment
-@app.route('/api/add_comment', methods=['POST'], strict_slashes = False)
+# Creates a comment, must be logged in
+@app.route('/api/add_comment', methods=['POST'], strict_slashes = False, provide_automatic_options=False)
+# @use_kwargs({'club': fields.Str(), 'email': fields.Str(), 'body': fields.Str()})
 def add_comment_json():
-    if request.method == 'POST' and not 'email' in session:
+    req = request.get_json()
+    if not 'email' in session:
         return jsonify({'message': 'access denied, must be logged in'}), 401
-    new_comment = Comment(id=str(uuid.uuid4()), body=request.form.get('body'), user=session['email'])
-    club = Club.query.filter_by(name=request.form.get('club_name')).first()
+    new_comment = Comment(id=str(uuid.uuid4()), body=req['body'], user=session['email'])
+    club = Club.query.filter_by(name=req['club_name']).first()
+    if not club:
+        return jsonify({'message': 'club not found'}), 404
     club.comments.append(new_comment)
     db.session.add(new_comment)
     db.session.commit()
@@ -281,7 +302,7 @@ def add_comment_html():
 
 
 # This route handles registering new account
-@app.route("/", methods=['GET', 'POST']) 
+@app.route("/", methods=['GET', 'POST'], strict_slashes = False) 
 def register_account():
     message = ''
     #if method post in index
@@ -299,13 +320,13 @@ def register_account():
         email_found = User.query.filter_by(email=email).first()
         if user_found:
             message = 'There already is a user by that name'
-            return render_template('index.html', message=message)
+            return render_template('index.html', message=message), 409
         if email_found:
             message = 'This email already exists in database'
-            return render_template('index.html', message=message)
+            return render_template('index.html', message=message), 409
         if password1 != password2:
             message = 'Passwords should match!'
-            return render_template('index.html', message=message)
+            return render_template('index.html', message=message), 400
         else:
             #hash the password and encode it
             hashed = bcrypt.hashpw(password2.encode('utf-8'), bcrypt.gensalt())
@@ -320,7 +341,7 @@ def register_account():
     return render_template('index.html')
 
 # Login/logout routes
-@app.route("/login", methods=["POST", "GET"])
+@app.route("/login", methods=["POST", "GET"], strict_slashes = False)
 def login():
     message = 'Please login to your account'
     if "email" in session:
@@ -342,13 +363,13 @@ def login():
                 if "email" in session:
                     return redirect(url_for("logged_in"))
                 message = 'Wrong password'
-                return render_template('login.html', message=message)
+                return render_template('login.html', message=message), 401
         else:
             message = 'Email not found'
-            return render_template('login.html', message=message)
+            return render_template('login.html', message=message), 401
     return render_template('login.html', message=message)
 
-@app.route('/logged_in')
+@app.route('/logged_in', strict_slashes = False)
 def logged_in():
     if "email" in session:
         email = session["email"]
@@ -356,7 +377,7 @@ def logged_in():
     else:
         return redirect(url_for("login"))
 
-@app.route("/logout", methods=["POST", "GET"])
+@app.route("/logout", methods=["POST", "GET"], strict_slashes = False)
 def logout():
     if "email" in session:
         session.pop("email", None)
@@ -365,10 +386,6 @@ def logout():
         return render_template('index.html')
 
 #autogenerate documentation
-from apispec import APISpec
-from apispec.ext.marshmallow import MarshmallowPlugin
-from flask_apispec.extension import FlaskApiSpec
-
 app.config.update({
     'APISPEC_SPEC': APISpec(
         title='Penn Labs Backend Challenge',

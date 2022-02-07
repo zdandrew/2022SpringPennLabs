@@ -2,87 +2,148 @@
 
 Original Backend Challenge Completed
 Bonus Challenges Completed: 
-   - Frontend/Full stack
-   - scraping, club comments
+   - Frontend (templates)
+   - scraping
+   - Unit Tests
+   - DevOps (Docker image)
+   - club comments
    - login/logout/signup
 
 How to set up. Navigate into project directory, 'npm install', 'python bootstrap.py', then 'flask run'.
 
-Note about Frontend: Everything except 'add new club', 'favorite club', 'modify club' is integrated into UI. These were left out because the implementation for tags greatly complicates the form creation. In order to test these routes, you must log in through POSTMAN. Logging in through the UI, then using POSTMAN for the POST routes will result in access denied due to not being logged in. Use the dropdown in the top-right corner to navigate.
+Note about Frontend: Everything except 'add new club', 'favorite club', 'modify club' is integrated into UI. 
 
-Log-in information: Username: 'josh@gmail.com', password: n/a, just fill in username and submit to log in. Or you can create your own through the register page.
-POST: http://127.0.0.1:5000/login form data: (email, josh@gmail.com), (password, n/a)
+Log-in information: email: 'josh@gmail.com', password: 'test'. Or you can create your own through the register page. Must be logged-in to add comments or favorite clubs. Can create and update clubs without logging in.
+POST: http://127.0.0.1:5000/login form data: (email, 'josh@gmail.com'), (password, 'test')
 
-FILE STRUCTURE:
+Incomplete API Documentation found at '/swagger-ui/'
+Due to bugs and time constraint, was not able to accurately autogenerate api documentation using Swagger library. 
+
+## FILE STRUCTURE:
 Templates: Contains all the HTML used to set up the frontend
 app.py: Contains all the routes used.
 bootstrap.py: Contains the functions used for populating the database, and web-scraping
 models.py: Contains the code for database structure.
+test_routes.py: Unit tests
+Dockerfile, start_app_w_gunicorn.sh, requirements.txt: used for creating Docker Image
 
-MODELS.PY: 4 classes - Club, Tag, User, Comment
-   due to the nature of these routes, many-to-many relationship were needed to  maximize query efficiency. This applies to clubs and tags, clubs and users, clubs and comments.
+## MODELS.PY: 4 classes - Club, Tag, User, Comment
+   Club & User: many to many relationship
+   Club & Tag: many to many relationship
+   Club & Comment: one to many relationship
+   User & Comment: one to many relationship
 
-APP.PY ROUTES: '*' means implemented in frontend
+## APP.PY ROUTES:
 
-   GET USER PROFILE *
-   @app.route('/api/find_user', methods=['GET']) - Returns all users and info.
-   @app.route('/api/find_specific_user', methods=['GET', 'POST']) - Returns specific user
-      takes 'name' as a form and returns corresponding user.
-      example: key=name, value=josh
+   @app.route('/api/users', methods=['GET']) - Gets all users and info.
+   Status Codes:
+      200: OK
 
-   SEARCH CLUBS *
-   @app.route('/api/clubs', methods=['GET', 'POST']) - Returns all clubs
-   @app.route('/api/find_specific_club', methods=['GET', 'POST']) - Returns clubs matching search
-      takes 'search' as a form and returns corresponding clubs.
+   @app.route('/api/user/<name>', methods=['GET']) - Returns specific user with matching name
+   Status Codes:
+      200: OK
+      404: user not found
 
-   ADD NEW CLUB - MUST BE LOGGED IN (not in frontend)
-   @app.route('/api/clubs', methods=['GET', 'POST']) - Adds a new club 
+   @app.route('/api/clubs', methods=['GET']) - Gets all clubs
+   Status Codes:
+      200: OK
+
+   @app.route('/api/club', methods=['POST']) - Create new club
+   Status Codes:
+      201: created successfully
+      409: club already exists
    Request Body Payload example json: 
-         {
-            "code": "codingclubcode",
-            "name": "Code Club",
-            "description": "We do code",
-            "tags": ["Programming", "Coding", "Technology", "Undergraduate"]
-         }
+   {
+      "code": "codingclubcode",
+      "name": "Code Club",
+      "description": "We do code",
+      "tags": ["Programming", "Coding", "Technology", "Undergraduate"]
+   }
 
-   FAVORITE A CLUB - MUST BE LOGGED IN (not in frontend)
-   @app.route('/api/<club>/favorite/<name>', methods=['GET', 'POST']) - favorites a club
+   @app.route('/api/club/<q>', methods=['GET']) - Gets clubs based on search term q
+   Status Codes:
+      200: OK
+   
+   @app.route('/api/club/<q>', methods=['PUT']) - Updates specific club with id q
+   Status Codes:
+      200: OK
+      400: invalid payload
+   Request body payload example json:
+   {
+      "name": "Locust Labs Newest Name",
+      "description": "Locust Labs new description right here",
+      "tags": ["Undergraduate", "TestTagFeature", "SuperFunTime"]
+   }
+
+   @app.route('/api/favorite/<club>/<name>', methods=['POST']) - favorites a club, must be logged in
       enter the club's id/code for <club> and user's id for <name>
-      example route: '/api/penn-memes/favorite/josh'
-
-   MODIFY A CLUB - MUST BE LOGGED IN (not in frontend)
-   @app.route('/api/clubs/<id>', methods=['PATCH']) - Modifies a club by changing fields to the input
-      <id> denotes the club id.
-      example route: '/api/clubs/locustlabs'
-      Request Body Payload examples json:
-         {
-            "name": "Locust Labs New Name",
-            "description": "Locust Labs new description right here",
-            "tags": ["Undergraduate", "TestTagFeature", "SuperFunTime"]
-         }
+      example route: '/api/favorite/penn-memes/josh
+   Status Codes:
+      401: unauthorized, must be logged in
+      404: user does not exist
+      404: club does not exist
+      409: conflict, already favorited
+      200: OK
    
    SHOW NUMBER OF CLUBS FOR EACH TAG * 
    @app.route('/api/tag_count') - returns the counts for every tag in json format.
+   Status Codes:
+      200: OK
 
-BONUS CHALLENGES
+## BONUS CHALLENGES
 
-   APP.PY BONUS ROUTES
+   ### APP.PY BONUS ROUTES
 
-      ANONYMOUS CLUB COMMENTING SYSTEM - MUST BE LOGGED IN* 
-      @app.route('/api/add_comment', methods=['GET', 'POST'])
-         takes 'description' as a form. The comments are anonymous as no author is recorded
+   @app.route('/api/add_comment', methods=['POST']) - Creates a comment, must be logged in
+   Status Codes:
+      401: unauthorized, must be logged in
+      404: club not found
+      200: OK
+   Request body payload json example:
+   {
+      "body": "postman comment",
+      "email": "josh@gmail.com",
+      "club_name": "Penn Memes Club"
+   }
 
-      LOGIN/LOGOUT/REGISTER
-      @app.route('/logged_in') - directs to page after logging in.
-      @app.route("/login", methods=["POST", "GET"]) - login page, takes form data
-      @app.route("/", methods=['GET', 'POST'])  - register page, takes form data
-      @app.route("/logout", methods=["POST", "GET"]) - logout page
-         Users created in bootstrap.py do not require passwords, others all do.
-         Passwords stored as hash.
+   LOGIN/LOGOUT/REGISTER
+   @app.route('/logged_in') - directs to page after logging in.
+   Status Codes:
+      200: OK
 
-   BOOTSTRAP.PY WEB-SCRAPER
-      scrape_load_data()
-         scrapes and loads club page into database
+   @app.route("/login", methods=["POST", "GET"]) - login page, takes form data
+   Status Codes:
+      401: wrong password or email not found
+      200: OK
 
-   FRONTEND
-      All templates are found in 'templates' folder
+   @app.route("/", methods=['GET', 'POST'])  - register page, takes form data to create new account
+   Status Codes:
+      409: name/email already in use
+      400: passwords invalid/do not match
+      200: OK
+
+   @app.route("/logout", methods=["POST", "GET"]) - logout page
+   Status Codes:
+      200: OK
+
+   ### BOOTSTRAP.PY WEB-SCRAPER
+   scrape_load_data()
+      scrapes and loads club page into database
+
+   ### FRONTEND
+   All templates are found in 'templates' folder
+
+   ### Docker/Gunicorn
+   1. install Gunicorn: 
+      'pip install gunicorn'
+   2. run the app in gunicorn with 2 processes/instances, 2 threads each:
+      'gunicorn app:app -w 2 --threads 2 -b 0.0.0.0:5000'
+   3. created these files:
+         start_app_w_gunicorn.sh
+         requirements.txt
+         Dockerfile
+   4. build Docker image: 
+      'docker build -t labs_image_2022 .'
+   5. run app from Docker: 
+      'docker run -p 5000:5000 labs_image_2022'
+   
