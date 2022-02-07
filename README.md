@@ -4,10 +4,10 @@ View in raw text for best formatting
 
 Bonus Challenges Completed: 
    - Frontend (templates)
-   - scraping
+   - Scraping
    - Unit Tests
    - DevOps (Docker image)
-   - club comments
+   - Club comments
    - login/logout/signup
 
 Set Up:
@@ -121,10 +121,15 @@ Dockerfile, start_app_w_gunicorn.sh, requirements.txt: used for creating Docker 
    Status Codes:
       200: OK
 
-   @app.route("/api/login", methods=["POST", "GET"]) - login page, takes form data
+   @app.route("/api/login", methods=["POST", "GET"]) - login page, takes json data
    Status Codes:
       401: wrong password or email not found
       200: OK
+   Example json payload:
+   {
+      "email": "josh@gmail.com",
+      "password": "test"
+   }
 
    @app.route("/", methods=['GET', 'POST'])  - register page, takes form data to create new account
    Status Codes:
