@@ -10,7 +10,11 @@ Bonus Challenges Completed:
    - club comments
    - login/logout/signup
 
-How to set up. Navigate into project directory, 'npm install', 'python bootstrap.py', then 'flask run'.
+Set Up:
+   navigate to project directory
+   'npm install'
+   'python bootstrap.py'
+   'flask run'
 
 Note about Frontend: Everything except 'add new club', 'favorite club', 'modify club' is integrated into UI. 
 
@@ -18,7 +22,7 @@ Log-in information: email: 'josh@gmail.com', password: 'test'. Or you can create
 POST: http://127.0.0.1:5000/login form data: (email, 'josh@gmail.com'), (password, 'test')
 
 Swagger API Documentation is available at '/swagger-ui/'
-@use_kwargs from flask-apispec requires refactoring some func signatures as it wasn't very compatible. Due to the time constraint, I decided to document the api in the Readme and use Swagger as a supplement.
+@use_kwargs from flask-apispec requires refactoring some func signatures as it wasn't compatible. Due to the time constraint, I decided to document the api in the Readme and use Swagger as a supplement.
 As a result, many lines including @doc, @use_kwargs, @marshal_with have been commented out.
 
 ## FILE STRUCTURE:
@@ -94,8 +98,12 @@ Dockerfile, start_app_w_gunicorn.sh, requirements.txt: used for creating Docker 
 
 ## BONUS CHALLENGES
 
-   ### APP.PY BONUS ROUTES
+   ### APP.PY BONUS ROUTES (Comments and User Authentication)
 
+   @app.route('/api/comments', methods=['GET']) - Gets all comments
+   Status Codes:
+      200: OK
+   
    @app.route('/api/add_comment', methods=['POST']) - Creates a comment, must be logged in
    Status Codes:
       401: unauthorized, must be logged in
@@ -113,7 +121,7 @@ Dockerfile, start_app_w_gunicorn.sh, requirements.txt: used for creating Docker 
    Status Codes:
       200: OK
 
-   @app.route("/login", methods=["POST", "GET"]) - login page, takes form data
+   @app.route("/api/login", methods=["POST", "GET"]) - login page, takes form data
    Status Codes:
       401: wrong password or email not found
       200: OK
@@ -135,19 +143,24 @@ Dockerfile, start_app_w_gunicorn.sh, requirements.txt: used for creating Docker 
    ### FRONTEND
    All templates are found in 'templates' folder
 
+   ### Unit Tests
+   Used Pytest library. Tested most important routes and cases.
+   To Run:
+      'python -m pytest'
+
    ### Docker/Gunicorn
+   Created Docker Image and ran it successfully. To recreate, follow below steps:
    1. install Gunicorn: 
       'pip install gunicorn'
    2. run the app in gunicorn with 2 processes/instances, 2 threads each:
       'gunicorn app:app -w 2 --threads 2 -b 0.0.0.0:5000'
-   3. created these files:
-         start_app_w_gunicorn.sh
-         requirements.txt
-         Dockerfile
-   4. build Docker image: 
+   3. build Docker image: 
       'docker build -t labs_image_2022 .'
-   5. run app from Docker: 
+   4. run app from Docker: 
       'docker run -p 5000:5000 labs_image_2022'
+   5. check running images
+      'docker ps'
+   6. kill image
+      'docker kill <id>'
    
-   ### Unit Tests
-   Used Pytest library
+   

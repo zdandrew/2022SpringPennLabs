@@ -299,7 +299,13 @@ def add_comment_html():
     db.session.commit()
     return render_template('add_comment.html')
 
-
+@app.route('/api/comments/', methods=['GET'], provide_automatic_options=False)
+def get_comments_json():
+    if request.method == 'GET':
+        comments = Comment.query.all()
+        comment_schema = CommentSchema(many=True)
+        output = comment_schema.dump(comments)
+        return jsonify({'comment': output})
 
 # This route handles registering new account
 @app.route("/", methods=['GET', 'POST'], strict_slashes = False) 
@@ -339,6 +345,35 @@ def register_account():
             #if registered redirect to logged in as the registered user
             return render_template('logged_in.html', email=email)
     return render_template('index.html')
+
+# Login/logout routes api
+@app.route("/api/login", methods=["POST", "GET"], strict_slashes = False)
+def login_json():
+    message = 'Please login to your account'
+    if "email" in session:
+        return redirect(url_for("logged_in"))
+    if request.method == "POST":
+        input_email = request.json.get("email")
+        password = request.json.get("password")
+        #check if email exists in database
+        email_found = User.query.filter_by(email=input_email).first()
+        if email_found:
+            email_val = email_found.email
+            passwordcheck = email_found.password
+
+            #encode the password and check if it matches
+            if bcrypt.checkpw(password.encode('utf-8'), passwordcheck):
+                session["email"] = email_val
+                return jsonify({'message': 'successfully logged in'}), 200
+            else:
+                if "email" in session:
+                    return redirect(url_for("logged_in"))
+                message = 'Wrong password'
+                return render_template('login.html', message=message), 401
+        else:
+            message = 'Email not found'
+            return render_template('login.html', message=message), 401
+    return render_template('login.html', message=message), 302   
 
 # Login/logout routes
 @app.route("/login", methods=["POST", "GET"], strict_slashes = False)
