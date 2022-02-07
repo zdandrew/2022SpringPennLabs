@@ -1,6 +1,5 @@
 # Penn Labs Backend Challenge - Andrew Zhang
 
-Original Backend Challenge Completed
 Bonus Challenges Completed: 
    - Frontend (templates)
    - scraping
@@ -16,9 +15,9 @@ Note about Frontend: Everything except 'add new club', 'favorite club', 'modify 
 Log-in information: email: 'josh@gmail.com', password: 'test'. Or you can create your own through the register page. Must be logged-in to add comments or favorite clubs. Can create and update clubs without logging in.
 POST: http://127.0.0.1:5000/login form data: (email, 'josh@gmail.com'), (password, 'test')
 
-Incomplete API Documentation found at '/swagger-ui/'
-Due to bugs and time constraint, was not able to accurately autogenerate api documentation using Swagger library. 
-The @doc, @kwarg, @marshal_with lines were written for the automatic api generation, but seemed to break some routes. Thus many have been commented out.
+Swagger API Documentation is available at '/swagger-ui/'
+@use_kwargs from flask-apispec requires refactoring some func signatures as it wasn't very compatible. Due to the time constraint, I decided to document the api in the Readme and use Swagger as a supplement.
+As a result, many lines including @doc, @use_kwargs, @marshal_with have been commented out.
 
 ## FILE STRUCTURE:
 Templates: Contains all the HTML used to set up the frontend
